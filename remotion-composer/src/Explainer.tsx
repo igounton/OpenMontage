@@ -566,7 +566,7 @@ const SceneRenderer: React.FC<{ cut: Cut; theme: ThemeConfig }> = ({ cut, theme 
   // Explicit component types — use theme-derived defaults for colors
   if (cut.type === "text_card" && cut.text) {
     return maybeWrapWithBg(
-      <TextCard text={cut.text} fontSize={cut.fontSize} color={textColor} backgroundColor={bgColor} />
+      <TextCard text={cut.text} fontSize={cut.fontSize} color={textColor} accentColor={accent} subtitle={cut.subtitle} backgroundColor={bgColor} />
     );
   }
   if (cut.type === "stat_card" && cut.stat) {
@@ -594,7 +594,7 @@ const SceneRenderer: React.FC<{ cut: Cut; theme: ThemeConfig }> = ({ cut, theme 
   }
   if (cut.type === "hero_title" && cut.text) {
     return maybeWrapWithBg(
-      <HeroTitle title={cut.text} subtitle={cut.heroSubtitle || cut.subtitle} />
+      <HeroTitle title={cut.text} subtitle={cut.heroSubtitle || cut.subtitle} accentColor={accent} />
     );
   }
   if (cut.type === "terminal_scene" && cut.steps) {
@@ -722,7 +722,7 @@ const SceneRenderer: React.FC<{ cut: Cut; theme: ThemeConfig }> = ({ cut, theme 
   }
 
   // No source, no type — render as text card with cut id as fallback
-  return <TextCard text={cut.text || cut.id} color={textColor} backgroundColor={bgColor} />;
+  return <TextCard text={cut.text || cut.id} color={textColor} accentColor={accent} backgroundColor={bgColor} />;
 };
 
 // ---------------------------------------------------------------------------
