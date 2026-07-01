@@ -26,13 +26,14 @@ export default function JobDetailPage() {
   const [awaitingStage, setAwaitingStage] = useState<string | null>(null);
   const [preview, setPreview] = useState<Record<string, unknown> | null>(null);
   const [renderUrl, setRenderUrl] = useState<string | null>(null);
-  const [costCny, setCostCny] = useState<number>(0);
-  const [budgetCny, setBudgetCny] = useState<number | null>(null);
+  const [costUsd, setCostUsd] = useState<number>(0);
+  const [budgetUsd, setBudgetUsd] = useState<number | null>(null);
 
   // Approval state
   const [feedback, setFeedback] = useState("");
   const [approving, setApproving] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  const [retryNonce, setRetryNonce] = useState(0);   // bump to re-open the event stream after a retry
 
   // Inline edit state
   const [editMode, setEditMode] = useState(false);
@@ -47,6 +48,7 @@ export default function JobDetailPage() {
 
   useEffect(() => {
     cancelledRef.current = false;
+    doneRef.current = false;   // a retry (retryNonce bump) re-arms the stream after a terminal state
     const connect = () => {
       if (cancelledRef.current) return null;
       const url = `${SERVER}/jobs/${jobId}/events?lastEventId=${lastSeqRef.current}`;
@@ -71,9 +73,9 @@ export default function JobDetailPage() {
           setStatus("running");
           setEditMode(false);
         }
-        if (ev.type === "cost_updated" && ev.cost_cny != null) {
-          setCostCny(ev.cost_cny);
-          if (ev.budget_cny != null) setBudgetCny(ev.budget_cny);
+        if (ev.type === "cost_updated" && ev.cost_usd != null) {
+          setCostUsd(ev.cost_usd);
+          if (ev.budget_usd != null) setBudgetUsd(ev.budget_usd);
         }
         if (ev.type === "job_completed") {
           setStatus("completed");
@@ -95,14 +97,17 @@ export default function JobDetailPage() {
     };
     const es = connect();
     return () => { cancelledRef.current = true; es?.close(); };
-  }, [jobId]);
+  }, [jobId, retryNonce]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [events]);
 
   async function handleRetry() {
     setRetrying(true);
-    await fetch(`${SERVER}/jobs/${jobId}/retry`, { method: "POST" });
-    setStatus("queued");
+    const res = await fetch(`${SERVER}/jobs/${jobId}/retry`, { method: "POST" });
+    if (res.ok) {
+      setStatus("queued");
+      setRetryNonce((n) => n + 1);   // re-open the (closed) event stream to follow the re-run
+    }
     setRetrying(false);
   }
 
@@ -156,17 +161,17 @@ export default function JobDetailPage() {
           <p className="text-muted-foreground text-sm mt-0.5">Job ID: {jobId}</p>
         </div>
         <div className="flex items-center gap-3">
-          {(costCny > 0 || budgetCny != null) && (
+          {(costUsd > 0 || budgetUsd != null) && (
             <span
               className={`text-xs font-mono border px-2 py-0.5 rounded-full ${
-                budgetCny != null && costCny > budgetCny
+                budgetUsd != null && costUsd > budgetUsd
                   ? "text-red-400 border-red-500/40 bg-red-500/10"
                   : "text-muted-foreground border-border"
               }`}
-              title="Cumulative tool-call cost (CNY)"
+              title="Cumulative tool-call cost (USD)"
             >
-              ¥{costCny.toFixed(4)}
-              {budgetCny != null && ` / ¥${budgetCny.toFixed(2)} budget`}
+              ${costUsd.toFixed(4)}
+              {budgetUsd != null && ` / $${budgetUsd.toFixed(2)} budget`}
             </span>
           )}
           <StatusBadge status={status} />

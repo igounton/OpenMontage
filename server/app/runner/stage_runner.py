@@ -143,12 +143,12 @@ def _run_agent_stage(
     feedback: str = "",
     cost_accumulator: list | None = None,
     cost_tracker: Any = None,
-    budget_cny: float | None = None,
+    budget_usd: float | None = None,
     base_cost: float = 0.0,
 ) -> bool:
     """Run a single stage. Returns True on success, False on failure.
 
-    May raise BudgetExceededError if a paid tool call would cross budget_cny —
+    May raise BudgetExceededError if a paid tool call would cross budget_usd —
     the caller catches it to drive the human budget gate.
     """
 
@@ -280,7 +280,7 @@ After writing the artifact, confirm briefly what you produced.
                     emit_event=lambda ev: _emit(job_id, ev),
                     cost_accumulator=cost_accumulator,
                     cost_tracker=cost_tracker,
-                    budget_cny=budget_cny,
+                    budget_usd=budget_usd,
                     base_cost=base_cost,
                 )
             except BudgetExceededError:
@@ -346,29 +346,29 @@ async def _run_pipeline_impl(job_id: str, data: dict) -> None:
     (project_dir / "assets").mkdir(exist_ok=True)
     (project_dir / "renders").mkdir(exist_ok=True)
 
-    # MaaS tools bill in CNY (the user owns the gateway) and their cost_usd field
-    # already carries CNY amounts, so accumulate directly — no FX conversion.
+    # Generation tools report real USD in their cost_usd field, so accumulate
+    # directly — no currency conversion.
     cost_accumulator: list[float] = []
     job = job_store.get(job_id) or {}
-    base_cost = float(job.get("cost_cny", 0.0) or 0.0)          # preserve across retries
+    base_cost = float(job.get("cost_usd", 0.0) or 0.0)          # preserve across retries
     completed_stages: set[str] = set(job.get("completed_stages", []))
 
-    # Optional CNY budget ceiling (opt-in via options.budget_cny). When set, the
+    # Optional USD budget ceiling (opt-in via options.budget_usd). When set, the
     # pipeline pauses for human approval once cumulative cost crosses it.
     try:
-        budget_cny = float(options["budget_cny"]) if options.get("budget_cny") not in (None, "") else None
+        budget_usd = float(options["budget_usd"]) if options.get("budget_usd") not in (None, "") else None
     except (TypeError, ValueError):
-        budget_cny = None
+        budget_usd = None
     budget_overridden = False
 
     # CostTracker as the itemized ledger (persists projects/<name>/cost_log.json).
-    # Values are CNY here; we run it in OBSERVE mode and own the human gate in
-    # this runner, so its USD-oriented thresholds are neutralized.
+    # Values are USD; we run it in OBSERVE mode and own the human gate in this
+    # runner, so its built-in approval thresholds are neutralized.
     cost_tracker = None
     if _COST_TRACKER_AVAILABLE:
         try:
             cost_tracker = CostTracker(
-                budget_total_usd=(budget_cny if budget_cny else 1e12),
+                budget_total_usd=(budget_usd if budget_usd else 1e12),
                 reserve_pct=0.0,
                 single_action_approval_usd=1e12,
                 require_approval_for_new_paid_tool=False,
@@ -379,12 +379,12 @@ async def _run_pipeline_impl(job_id: str, data: dict) -> None:
             cost_tracker = None
 
     def _sync_cost(stage_name: str) -> None:
-        cost_cny = round(base_cost + sum(cost_accumulator), 4)
-        job_store.update(job_id, cost_cny=cost_cny)
+        cost_usd = round(base_cost + sum(cost_accumulator), 4)
+        job_store.update(job_id, cost_usd=cost_usd)
         _emit(job_id, {
             "type": "cost_updated",
-            "cost_cny": cost_cny,
-            "budget_cny": budget_cny,
+            "cost_usd": cost_usd,
+            "budget_usd": budget_usd,
             "stage": stage_name,
         })
 
@@ -395,25 +395,25 @@ async def _run_pipeline_impl(job_id: str, data: dict) -> None:
         pre-call check blocked the *next* paid call that would have crossed it.
         """
         nonlocal budget_overridden
-        if not budget_cny or budget_overridden:
+        if not budget_usd or budget_overridden:
             return True
         spent = round(base_cost + sum(cost_accumulator), 4)
-        if spent <= budget_cny and not force:
+        if spent <= budget_usd and not force:
             return True
         job_store.update(job_id, status="awaiting_approval")
         _emit(job_id, {
             "type": "awaiting_approval",
             "stage": "budget",
             "gate": "budget",
-            "preview": {"spent_cny": spent, "budget_cny": budget_cny,
-                        "over_by_cny": round(spent - budget_cny, 4)},
+            "preview": {"spent_usd": spent, "budget_usd": budget_usd,
+                        "over_by_usd": round(spent - budget_usd, 4)},
         })
-        _emit(job_id, {"type": "budget_exceeded", "spent_cny": spent, "budget_cny": budget_cny})
+        _emit(job_id, {"type": "budget_exceeded", "spent_usd": spent, "budget_usd": budget_usd})
         approval = await job_store.wait_for_approval(job_id, timeout=3600.0)
         if approval["action"] == "reject":
             job_store.update(job_id, status="failed")
             _emit(job_id, {"type": "job_failed", "stage": "budget",
-                           "message": f"Budget ¥{budget_cny} exceeded (spent ¥{spent}); aborted by user"})
+                           "message": f"Budget ${budget_usd} exceeded (spent ${spent}); aborted by user"})
             return False
         budget_overridden = True   # user approved overspend — don't re-prompt this run
         job_store.update(job_id, status="running")
@@ -466,7 +466,7 @@ async def _run_pipeline_impl(job_id: str, data: dict) -> None:
                     _run_agent_stage,
                     job_id, stage_name, skill_text, project_dir,
                     brand_info, options, feedback, cost_accumulator, cost_tracker,
-                    (None if budget_overridden else budget_cny), base_cost,
+                    (None if budget_overridden else budget_usd), base_cost,
                 )
             except BudgetExceededError:
                 _sync_cost(stage_name)

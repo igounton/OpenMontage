@@ -14,8 +14,8 @@ export type SseEvent = {
   preview?: unknown;
   render_url?: string;
   message?: string;
-  cost_cny?: number;
-  budget_cny?: number | null;
+  cost_usd?: number;
+  budget_usd?: number | null;
   gate?: string;
 };
 

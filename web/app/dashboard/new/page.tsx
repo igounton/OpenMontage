@@ -30,7 +30,7 @@ export default function NewProjectPage() {
     duration: "30",
     notes: "",
     brandKitId: "",
-    budgetCny: "",
+    budgetUsd: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -80,8 +80,8 @@ export default function NewProjectPage() {
           image_model: "h100/flux2",
           tts_model: "qwen3-tts-flash",
           ...(form.brandKitId ? { brand_kit_id: form.brandKitId } : {}),
-          ...(form.budgetCny && Number(form.budgetCny) > 0
-            ? { budget_cny: Number(form.budgetCny) }
+          ...(form.budgetUsd && Number(form.budgetUsd) > 0
+            ? { budget_usd: Number(form.budgetUsd) }
             : {}),
         },
       }),
@@ -272,17 +272,17 @@ export default function NewProjectPage() {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium block mb-1.5">Budget cap ¥ (optional)</label>
+              <label className="text-sm font-medium block mb-1.5">Budget cap $ (optional)</label>
               <Input
                 type="number"
                 min="0"
                 step="0.5"
                 placeholder="e.g. 50 — pause for confirmation once cumulative cost exceeds this"
-                value={form.budgetCny}
-                onChange={(e) => setForm(f => ({ ...f, budgetCny: e.target.value }))}
+                value={form.budgetUsd}
+                onChange={(e) => setForm(f => ({ ...f, budgetUsd: e.target.value }))}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                MaaS is billed in CNY. Leave blank for no budget gate.
+                Costs are in USD. Leave blank for no budget gate.
               </p>
             </div>
             <div>

@@ -42,7 +42,7 @@ export default function SettingsPage() {
 
   const env = {
     "LLM Model": "anthropic/claude-sonnet-4.6",
-    "Video Generation": "MaaS · LTX-2.3 / Seedance (CNY billing)",
+    "Video Generation": "WaveSpeed · Seedance / Kling (USD billing)",
     "Image Generation": "MaaS · Flux2",
     "Speech Synthesis": "MaaS · qwen3-tts-flash / IndexTTS",
     "Cost Tracking": "cost_tracker source ledger (cost_log.json)",

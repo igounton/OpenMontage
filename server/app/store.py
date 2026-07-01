@@ -116,7 +116,7 @@ class JobStore:
                 "current_stage": None,
                 "stages": [],
                 "completed_stages": [],
-                "cost_cny": 0.0,
+                "cost_usd": 0.0,
                 "created_at": time.time(),
                 **data,
             }

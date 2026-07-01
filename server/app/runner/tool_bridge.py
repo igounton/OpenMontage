@@ -111,7 +111,7 @@ def execute_tool(
     emit_event: Any = None,   # callable(event_dict) for SSE
     cost_accumulator: list | None = None,  # mutable list[float] for cost accumulation
     cost_tracker: Any = None,  # optional tools.cost_tracker.CostTracker ledger
-    budget_cny: float | None = None,  # per-job CNY ceiling (None = no gate)
+    budget_usd: float | None = None,  # per-job USD ceiling (None = no gate)
     base_cost: float = 0.0,           # cost already spent before this run (retries)
 ) -> str:
     """Execute a tool call and return a string result for the agent."""
@@ -196,19 +196,19 @@ def execute_tool(
         # the between-stages gate ever fires. Raises so _run_agent_stage unwinds
         # and the runner's event loop can own the human pause.
         est_cost = float(tool.estimate_cost(inputs) or 0.0)
-        if budget_cny is not None and est_cost > 0:
+        if budget_usd is not None and est_cost > 0:
             projected = base_cost + (sum(cost_accumulator) if cost_accumulator else 0.0) + est_cost
-            if projected > budget_cny:
+            if projected > budget_usd:
                 if emit_event:
                     emit_event({
                         "type": "budget_precall_block",
                         "tool": tool_name,
-                        "projected_cny": round(projected, 4),
-                        "budget_cny": budget_cny,
+                        "projected_usd": round(projected, 4),
+                        "budget_usd": budget_usd,
                     })
                 raise BudgetExceededError(
-                    f"Paid call to {tool_name} (est ¥{est_cost:.2f}) would bring spend to "
-                    f"¥{projected:.2f}, over budget ¥{budget_cny:.2f}"
+                    f"Paid call to {tool_name} (est ${est_cost:.2f}) would bring spend to "
+                    f"${projected:.2f}, over budget ${budget_usd:.2f}"
                 )
 
         # Ledger: estimate before, reconcile after (real CostTracker usage →
@@ -238,7 +238,7 @@ def execute_tool(
 
         if result.success:
             # Record every completed paid call (append even 0.0 so the tally
-            # reflects call count; the sum is what drives the CNY display).
+            # reflects call count; the sum is what drives the USD display).
             if cost_accumulator is not None and result.cost_usd is not None:
                 cost_accumulator.append(float(result.cost_usd))
             if emit_event and result.artifacts:
