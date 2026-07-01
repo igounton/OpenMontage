@@ -32,21 +32,37 @@ with open("projects/<slug>/renders/final_captioned.mp4","rb") as f:
 ```
 Posting to the channel is LIVE (no draft state via bot). Confirm before sending.
 
-## Anaella API — channels list works; posting flow NOT yet verified
+## Anaella API — YouTube/social — VERIFIED WORKING (ep3, draft on Stand For AI) ✅
 Base `ANAELLA_BASE_URL=https://api.anaella.com`, auth `Authorization: Bearer $ANAELLA_API_KEY`.
-- `GET /` → `{"status":"ok","name":"anaella.com API"}`
-- `GET /channels` → 200, `data[]` of connected channels. Confirmed: YouTube **Stand For AI**
-  `id=i7yex41sdut2epp8z1a0ldfp`, `platform:"youtube"`, `url:https://youtube.com/@standforai`,
-  `status:"active"`. (Telegram is also connected in Anaella per the user, but we publish
-  Telegram directly via the Bot API above — simpler and confirmed working.)
-- `/api/*`, `/api/channels`, `/integrations` → 404. The upload→create-post→publish endpoints
-  were NOT discovered/verified in ep3. **Do not guess** — probe `GET /channels`-style paths and
-  confirm the resource-upload + post-create endpoints before pushing to YouTube via Anaella.
-  Prior episodes (memory, tickling) only ever `status:"exported"` locally — never hit Anaella.
-- The Griot MCP `postiz` tools return `{"result":"Invalid host header"}` in this environment —
-  not a usable path here.
+Source of truth: `/Users/isaacgounton/Desktop/DEV/DAHO/anaella` (API in `apps/api/src/modules`).
+Docs live at `GET /openapi.json`. Channels: `GET /channels` → YouTube **Stand For AI**
+`i7yex41sdut2epp8z1a0ldfp`.
 
-## YouTube Shorts (Stand For AI)
-No verified programmatic upload yet (Anaella post-endpoints unconfirmed). For now: export
-package + `publish_log` `status:"draft"`, and upload manually, OR finish verifying the Anaella
-posting endpoints. Channel id `i7yex41sdut2epp8z1a0ldfp`.
+**⚠ Never POST the file to `/resources/` directly — it proxies to MinIO and Cloudflare 524s
+on anything nontrivial.** Use the presign flow (PUT straight to storage):
+
+1. `POST /resources/presign` json `{"fileName","contentType":"video/mp4","isPrivate":false}`
+   → `{"resource":{id,type,location,url,...}, "uploadUrl":"<minio presigned>"}`
+2. `PUT <uploadUrl>` with raw file bytes, header `Content-Type: video/mp4` (goes to MinIO, fast).
+3. `POST /resources/{id}/complete` json `{}` → resource object. Metadata (size/dims/duration)
+   populates async — poll `GET /resources/{id}` a few times if you need it.
+4. `POST /posts/` json `{"type":"reel","name":"<title>"}` → post shell, `status:"draft"`, empty channels.
+5. `PUT /posts/` (attach — the whole object) json:
+   ```json
+   {"id":"<post_id>","type":"reel","name":"<title>","description":"<caption ≤5000>",
+    "status":"draft","scheduledAt":null,"firstComment":null,
+    "channels":[{"id":"i7yex41sdut2epp8z1a0ldfp","platform":"youtube","name":"Stand For AI",
+      "imageUrl":null,"scheduledPost":{"id":"_new","status":"draft","scheduledAt":null,
+      "publishedAt":null,"startedAt":null,"failedAt":null,"failureReason":null,
+      "parentPostId":null,"parentPostSettings":null,"repostSettings":null,"settings":null}}],
+    "totalLikes":0,"totalImpressions":0,"totalComments":0,"totalShares":0,
+    "createdAt":"<from step 4>","resource":<full resource object from step 3>}
+   ```
+   Leaves it a DRAFT. Gotchas: reels REQUIRE a non-null `resource`; ≥1 channel; new-channel
+   attach needs `scheduledPost.id:"_new"` (server assigns real id); YouTube description ≤5000.
+   On 400 the body carries `value.data.errors` (per-platform) — read it.
+6. **Publish** (only when told to go live): `PATCH /posts/{id}/publish` json `{}`. Schedule
+   instead by setting `scheduledAt` (ISO) in step 5 then calling publish. Undo: `PATCH /posts/{id}/return-to-draft`, delete: `DELETE /posts/{id}`.
+
+Working tested script: reproduce the steps above with `requests`; ep3 draft = post
+`qoe8p1t0unxq56tgh2gpwq9p`. The Griot MCP `postiz` tools return "Invalid host header" — don't use them.

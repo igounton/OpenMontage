@@ -112,9 +112,11 @@ Full tested details in **`references/publish.md`**. Summary:
 - **Telegram — WORKS** via Telegram Bot API `sendVideo` (bot @anaellabot, channel "Anaella"
   `-1003260495410`; creds in gitignored `.env` as `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHANNEL_ID`).
   Bot is a channel admin; ≤50 MB. Posting is LIVE — confirm before sending.
-- **Anaella API** (`https://api.anaella.com`, `Bearer $ANAELLA_API_KEY`): `GET /channels`
-  works and lists YouTube **Stand For AI** (`i7yex41sdut2epp8z1a0ldfp`). The upload/post/
-  publish endpoints are NOT yet verified — do not guess; probe and confirm first.
+- **Anaella API** (`https://api.anaella.com`, `Bearer $ANAELLA_API_KEY`) — VERIFIED for
+  YouTube (Stand For AI) + other social. Full recipe in `references/publish.md`. Key rule:
+  upload via the **presign flow** (`/resources/presign` → PUT to storage → `/resources/{id}/complete`),
+  NOT direct POST (524s). Then create reel + `PUT /posts/` (draft), publish with
+  `PATCH /posts/{id}/publish`. Source of truth: `/Users/isaacgounton/Desktop/DEV/DAHO/anaella`, docs at `GET /openapi.json`.
 - Always build the `exports/<slug>/` package + `publish_log.json` regardless of channel.
 
 ## References (read these — they remove all guesswork)
