@@ -41,7 +41,9 @@ except Exception:  # pragma: no cover - cost ledger is optional
 # ── MaaS LLM client ───────────────────────────────────────────────────────────
 MAAS_KEY  = os.environ.get("MAAS_API_KEY", "")
 MAAS_BASE = os.environ.get("MAAS_API_BASE", "https://api.aiapbot.com")
-LLM_MODEL = "anthropic/claude-sonnet-4.6"
+# Together AI (OpenAI-compatible) is the default LLM brain; override via LLM_MODEL.
+# Model must support tool/function calling (the agent uses tools=TOOL_SCHEMAS).
+LLM_MODEL = os.environ.get("LLM_MODEL", "MiniMaxAI/MiniMax-M3")
 
 llm = OpenAI(api_key=MAAS_KEY, base_url=f"{MAAS_BASE}/v1")
 
