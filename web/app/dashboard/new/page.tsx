@@ -76,9 +76,9 @@ export default function NewProjectPage() {
         },
         options: {
           duration_seconds: parseInt(form.duration),
-          video_model: "h100/ltx-2.3",
-          image_model: "h100/flux2",
-          tts_model: "qwen3-tts-flash",
+          // Provider/model is chosen at runtime by the capability selectors
+          // (image_selector / video_selector / tts_selector) from whatever is
+          // credentialed in the registry — no hardcoded model id needed.
           ...(form.brandKitId ? { brand_kit_id: form.brandKitId } : {}),
           ...(form.budgetUsd && Number(form.budgetUsd) > 0
             ? { budget_usd: Number(form.budgetUsd) }

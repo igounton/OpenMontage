@@ -39,13 +39,16 @@ except Exception:  # pragma: no cover - cost ledger is optional
     _COST_TRACKER_AVAILABLE = False
 
 # ── MaaS LLM client ───────────────────────────────────────────────────────────
-MAAS_KEY  = os.environ.get("MAAS_API_KEY", "")
-MAAS_BASE = os.environ.get("MAAS_API_BASE", "https://api.aiapbot.com")
-# Together AI (OpenAI-compatible) is the default LLM brain; override via LLM_MODEL.
-# Model must support tool/function calling (the agent uses tools=TOOL_SCHEMAS).
+# LLM brain: Together AI (OpenAI-compatible) by default. Uses dedicated LLM_API_*
+# vars, falling back to TOGETHER_API_KEY — deliberately NOT MAAS_API_KEY, so the
+# retired MaaS *generation* gateway (maas_tts/maas_image/maas_video) is not
+# reactivated just because the LLM has a key. Model must support tool/function
+# calling (the agent uses tools=TOOL_SCHEMAS); override via LLM_MODEL.
+LLM_KEY   = os.environ.get("LLM_API_KEY") or os.environ.get("TOGETHER_API_KEY", "")
+LLM_BASE  = os.environ.get("LLM_API_BASE", "https://api.together.xyz")
 LLM_MODEL = os.environ.get("LLM_MODEL", "MiniMaxAI/MiniMax-M3")
 
-llm = OpenAI(api_key=MAAS_KEY, base_url=f"{MAAS_BASE}/v1")
+llm = OpenAI(api_key=LLM_KEY, base_url=f"{LLM_BASE}/v1")
 
 # ── Cinematic pipeline stage definitions ─────────────────────────────────────
 CINEMATIC_STAGES = [

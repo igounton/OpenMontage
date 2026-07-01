@@ -12,9 +12,20 @@ both the OpenAI SDK (pointing at MaaS) and Anthropic SDK.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 from typing import Any
+
+# Pin capability selectors to the deployment's chosen providers (comma-separated
+# env allow-lists). Without this, the scored ranker can pick a provider that is
+# listed-but-broken (blank/whitespace key, missing local binary, retired MaaS
+# gateway) over a credentialed one. Empty/unset env → no constraint (auto-rank).
+_SELECTOR_PROVIDER_ENV = {
+    "tts_selector": "OM_TTS_PROVIDERS",
+    "image_selector": "OM_IMAGE_PROVIDERS",
+    "video_selector": "OM_VIDEO_PROVIDERS",
+}
 
 # Add OpenMontage root to path so we can import tools/lib
 OM_ROOT = Path(__file__).parent.parent.parent.parent
@@ -152,7 +163,7 @@ def execute_tool(
             emit_event({
                 "type": "tool_call",
                 "tool": tool_name,
-                "summary": f"调用工具 {tool_name}",
+                "summary": f"Calling tool {tool_name}",
                 "inputs_preview": {k: str(v)[:80] for k, v in inputs.items()},
             })
 
@@ -161,6 +172,14 @@ def execute_tool(
         tool = registry.get(tool_name)
         if not tool:
             return f"ERROR: Tool '{tool_name}' not found in registry"
+
+        # Constrain a capability selector to the deployment's chosen providers,
+        # unless the agent explicitly passed its own allow-list.
+        env_key = _SELECTOR_PROVIDER_ENV.get(tool_name)
+        if env_key and not inputs.get("allowed_providers"):
+            allow = [p.strip() for p in os.environ.get(env_key, "").split(",") if p.strip()]
+            if allow:
+                inputs = {**inputs, "allowed_providers": allow}
 
         # Set output path if not specified.
         if "output_path" not in inputs:
