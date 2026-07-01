@@ -107,13 +107,21 @@ episode ≈ $0-0.01. Stay within it; flag any paid step.
 6. Mux audio (ffmpeg, above).
 7. Burn captions (ffmpeg libass, above) → `final_captioned.mp4`.
 
-## Publish
-- Anaella API: upload resource → create post → PUT with channel + media →
-  PATCH publish. Auth `Authorization: Bearer $ANAELLA_API_KEY`.
-- YouTube channel: **Stand For AI** (`i7yex41sdut2epp8z1a0ldfp`).
-- Publish is a human-approval gate — confirm before pushing live.
+## Publish (human-approval gate — confirm live vs draft first)
+Full tested details in **`references/publish.md`**. Summary:
+- **Telegram — WORKS** via Telegram Bot API `sendVideo` (bot @anaellabot, channel "Anaella"
+  `-1003260495410`; creds in gitignored `.env` as `TELEGRAM_BOT_TOKEN`/`TELEGRAM_CHANNEL_ID`).
+  Bot is a channel admin; ≤50 MB. Posting is LIVE — confirm before sending.
+- **Anaella API** (`https://api.anaella.com`, `Bearer $ANAELLA_API_KEY`): `GET /channels`
+  works and lists YouTube **Stand For AI** (`i7yex41sdut2epp8z1a0ldfp`). The upload/post/
+  publish endpoints are NOT yet verified — do not guess; probe and confirm first.
+- Always build the `exports/<slug>/` package + `publish_log.json` regardless of channel.
 
-## References
+## References (read these — they remove all guesswork)
+- **`references/render-pipeline.md`** — exact, tested end-to-end commands: TTS, stock, audio
+  mix, edit_decisions (⚠ stale schema), themeConfig accent, asset_manifest, silent Remotion
+  render + `public/assets` symlink, SRT gen, ffmpeg mux + libass burn, artifact enum quirks.
+- **`references/publish.md`** — Telegram Bot path (works) + Anaella API discovery.
 - `projects/memory-explainer/SEED_TOPICS.md` — topic backlog + hooks
 - `projects/memory-explainer/FORMAT_BIBLE.md` — 6-beat formula + visual system
-- Prior episodes: `projects/memory-explainer/`, `projects/cant-tickle-yourself/`
+- Reference implementations: `projects/cant-tickle-yourself/` (ep2), `projects/never-touch-anything/` (ep3)

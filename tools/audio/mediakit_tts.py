@@ -184,16 +184,23 @@ class MediakitTTS(BaseTool):
                 success=False, error=f"No file_id in Mediakit response: {resp.text}"
             )
 
-        # Poll for file readiness (processing can take a moment)
+        # Poll for file readiness. Modal cold starts can take well over 10s, so
+        # wait up to 90s and only download once status is "ready" — downloading
+        # early 404s on the storage endpoint.
         import time as _time
         status_url = f"{base_url}/api/v1/media/storage/{file_id}/status"
-        for attempt in range(10):
+        ready = False
+        for attempt in range(90):
             status_resp = requests.get(status_url, headers=headers, timeout=30)
-            if status_resp.ok:
-                status_data = status_resp.json()
-                if status_data.get("status") == "ready":
-                    break
+            if status_resp.ok and status_resp.json().get("status") == "ready":
+                ready = True
+                break
             _time.sleep(1)
+        if not ready:
+            return ToolResult(
+                success=False,
+                error=f"Mediakit file {file_id} not ready after 90s",
+            )
 
         # Download the generated audio
         download_resp = requests.get(
