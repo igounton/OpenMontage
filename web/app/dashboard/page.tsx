@@ -16,17 +16,17 @@ type Job = {
 };
 
 const STATUS_META: Record<string, { label: string; cls: string }> = {
-  queued:            { label: "排队中", cls: "bg-muted text-muted-foreground border-border" },
-  running:           { label: "生成中", cls: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
-  awaiting_approval: { label: "待审批", cls: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
-  completed:         { label: "已完成", cls: "bg-green-500/15 text-green-400 border-green-500/30" },
-  failed:            { label: "失败",   cls: "bg-red-500/15 text-red-400 border-red-500/30" },
+  queued:            { label: "Queued", cls: "bg-muted text-muted-foreground border-border" },
+  running:           { label: "Generating", cls: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
+  awaiting_approval: { label: "Awaiting Approval", cls: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
+  completed:         { label: "Completed", cls: "bg-green-500/15 text-green-400 border-green-500/30" },
+  failed:            { label: "Failed",   cls: "bg-red-500/15 text-red-400 border-red-500/30" },
 };
 
 const CONTENT_TYPE_LABEL: Record<string, string> = {
-  marketing_film: "营销宣传片",
-  explainer: "解说视频",
-  podcast: "播客剪辑",
+  marketing_film: "Marketing Film",
+  explainer: "Explainer Video",
+  podcast: "Podcast Cut",
 };
 
 export default function DashboardPage() {
@@ -58,23 +58,23 @@ export default function DashboardPage() {
     <div className="p-8 max-w-6xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">我的项目</h1>
-          <p className="text-muted-foreground text-sm mt-1">AI 驱动的视频生产任务</p>
+          <h1 className="text-2xl font-bold tracking-tight">My Projects</h1>
+          <p className="text-muted-foreground text-sm mt-1">AI-powered video production jobs</p>
         </div>
         <Link href="/dashboard/new">
-          <Button>+ 新建视频</Button>
+          <Button>+ New Video</Button>
         </Link>
       </div>
 
       {loading && (
-        <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">加载中…</div>
+        <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">Loading…</div>
       )}
 
       {!loading && jobs.length === 0 && (
         <div className="flex flex-col items-center justify-center h-64 border border-dashed border-border rounded-lg gap-4">
-          <p className="text-muted-foreground text-sm">还没有项目</p>
+          <p className="text-muted-foreground text-sm">No projects yet</p>
           <Link href="/dashboard/new">
-            <Button variant="outline">创建第一个视频</Button>
+            <Button variant="outline">Create your first video</Button>
           </Link>
         </div>
       )}
@@ -85,7 +85,7 @@ export default function DashboardPage() {
             const s = STATUS_META[job.status] ?? STATUS_META.queued;
             const brandName = job.brand_info?.brand_name ?? job.project_name;
             const contentLabel = CONTENT_TYPE_LABEL[job.content_type] ?? job.content_type;
-            const date = new Date(job.created_at * 1000).toLocaleDateString("zh-CN");
+            const date = new Date(job.created_at * 1000).toLocaleDateString("en-US");
             return (
               <Link key={job.job_id} href={`/dashboard/jobs/${job.job_id}`}>
                 <Card className="hover:border-foreground/30 transition-colors cursor-pointer h-full">

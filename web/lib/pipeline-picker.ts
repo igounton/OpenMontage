@@ -19,11 +19,11 @@ export type PipelineOption = {
 
 // Friendly Chinese entry points mapped to engine pipelines.
 export const CONTENT_TYPES: PipelineOption[] = [
-  { id: "marketing_film", label: "营销宣传片", description: "品牌故事 · 产品发布 · 15-60 秒情感向短片", pipeline: "cinematic" },
-  { id: "explainer",      label: "解说视频",   description: "动态图文 · 功能演示 · 教程",              pipeline: "animated-explainer" },
-  { id: "podcast",        label: "播客剪辑",   description: "长音频 → 短视频精华片段",                pipeline: "podcast-repurpose" },
-  { id: "demo",           label: "产品演示",   description: "屏幕录制 + AI 旁白讲解",                 pipeline: "screen-demo" },
-  { id: "short",          label: "短视频批量", description: "长视频 → 多条竖屏短片",                  pipeline: "clip-factory" },
+  { id: "marketing_film", label: "Marketing film", description: "Brand story · Product launch · 15-60s emotional short", pipeline: "cinematic" },
+  { id: "explainer",      label: "Explainer video",   description: "Motion graphics · Feature demo · Tutorial",              pipeline: "animated-explainer" },
+  { id: "podcast",        label: "Podcast clips",   description: "Long audio → short video highlights",                pipeline: "podcast-repurpose" },
+  { id: "demo",           label: "Product demo",   description: "Screen recording + AI voiceover",                 pipeline: "screen-demo" },
+  { id: "short",          label: "Bulk shorts", description: "Long video → multiple vertical shorts",                  pipeline: "clip-factory" },
 ];
 
 /**

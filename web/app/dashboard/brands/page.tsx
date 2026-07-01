@@ -94,7 +94,7 @@ export default function BrandsPage() {
   }
 
   async function handleDelete(kit_id: string) {
-    if (!confirm("确定删除？")) return;
+    if (!confirm("Delete this brand kit?")) return;
     await fetch(`${SERVER}/brands/${kit_id}`, { method: "DELETE" });
     await load();
   }
@@ -103,11 +103,11 @@ export default function BrandsPage() {
     <div className="p-8 max-w-4xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">品牌库</h1>
-          <p className="text-muted-foreground text-sm mt-1">保存品牌资产，AI 自动引用生成风格一致的视频</p>
+          <h1 className="text-2xl font-bold tracking-tight">Brand Library</h1>
+          <p className="text-muted-foreground text-sm mt-1">Save your brand assets so AI can automatically reference them and generate style-consistent videos</p>
         </div>
         {!creating && (
-          <Button onClick={startCreate}>+ 新建品牌 Kit</Button>
+          <Button onClick={startCreate}>+ New Brand Kit</Button>
         )}
       </div>
 
@@ -115,45 +115,45 @@ export default function BrandsPage() {
       {creating && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{editing ? "编辑品牌 Kit" : "新建品牌 Kit"}</CardTitle>
+            <CardTitle className="text-base">{editing ? "Edit Brand Kit" : "New Brand Kit"}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSave} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium block mb-1.5">品牌名称 *</label>
-                  <Input required value={form.brand_name} onChange={(e) => setForm(f => ({ ...f, brand_name: e.target.value }))} placeholder="小狗牌咖啡机" />
+                  <label className="text-sm font-medium block mb-1.5">Brand Name *</label>
+                  <Input required value={form.brand_name} onChange={(e) => setForm(f => ({ ...f, brand_name: e.target.value }))} placeholder="Puppy Coffee Maker" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1.5">行业</label>
-                  <Input value={form.industry} onChange={(e) => setForm(f => ({ ...f, industry: e.target.value }))} placeholder="消费电子 / 快消 / 科技…" />
+                  <label className="text-sm font-medium block mb-1.5">Industry</label>
+                  <Input value={form.industry} onChange={(e) => setForm(f => ({ ...f, industry: e.target.value }))} placeholder="Consumer electronics / FMCG / Tech…" />
                 </div>
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1.5">Slogan</label>
-                <Input value={form.slogan} onChange={(e) => setForm(f => ({ ...f, slogan: e.target.value }))} placeholder="好咖啡，不只属于咖啡馆" />
+                <Input value={form.slogan} onChange={(e) => setForm(f => ({ ...f, slogan: e.target.value }))} placeholder="Great coffee, not just for cafés" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium block mb-1.5">情感关键词（逗号分隔）</label>
-                  <Input value={form.tone_keywords} onChange={(e) => setForm(f => ({ ...f, tone_keywords: e.target.value }))} placeholder="温暖, 仪式感, 品质" />
+                  <label className="text-sm font-medium block mb-1.5">Tone Keywords (comma-separated)</label>
+                  <Input value={form.tone_keywords} onChange={(e) => setForm(f => ({ ...f, tone_keywords: e.target.value }))} placeholder="Warm, ritual, quality" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-1.5">品牌色彩（Hex，逗号分隔）</label>
+                  <label className="text-sm font-medium block mb-1.5">Brand Colors (Hex, comma-separated)</label>
                   <Input value={form.color_palette} onChange={(e) => setForm(f => ({ ...f, color_palette: e.target.value }))} placeholder="#1A1A1A, #C8A96E, #F5F0E8" />
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1.5">目标受众</label>
-                <Input value={form.target_audience} onChange={(e) => setForm(f => ({ ...f, target_audience: e.target.value }))} placeholder="25-40 岁都市白领，注重生活品质" />
+                <label className="text-sm font-medium block mb-1.5">Target Audience</label>
+                <Input value={form.target_audience} onChange={(e) => setForm(f => ({ ...f, target_audience: e.target.value }))} placeholder="Urban professionals aged 25-40 who value quality of life" />
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1.5">风格备注</label>
-                <Textarea rows={2} value={form.style_notes} onChange={(e) => setForm(f => ({ ...f, style_notes: e.target.value }))} placeholder="慢镜头、暖调、微距特写、无旁白…" />
+                <label className="text-sm font-medium block mb-1.5">Style Notes</label>
+                <Textarea rows={2} value={form.style_notes} onChange={(e) => setForm(f => ({ ...f, style_notes: e.target.value }))} placeholder="Slow motion, warm tones, macro close-ups, no voiceover…" />
               </div>
               <div className="flex gap-3 pt-2">
-                <Button type="submit" disabled={saving}>{saving ? "保存中…" : "保存"}</Button>
-                <Button type="button" variant="outline" onClick={() => { setCreating(false); setEditing(null); }}>取消</Button>
+                <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save"}</Button>
+                <Button type="button" variant="outline" onClick={() => { setCreating(false); setEditing(null); }}>Cancel</Button>
               </div>
             </form>
           </CardContent>
@@ -163,8 +163,8 @@ export default function BrandsPage() {
       {/* Kit list */}
       {kits.length === 0 && !creating && (
         <div className="flex flex-col items-center justify-center h-48 border border-dashed border-border rounded-lg gap-3">
-          <p className="text-muted-foreground text-sm">还没有品牌 Kit</p>
-          <Button variant="outline" onClick={startCreate}>创建第一个</Button>
+          <p className="text-muted-foreground text-sm">No brand kits yet</p>
+          <Button variant="outline" onClick={startCreate}>Create your first one</Button>
         </div>
       )}
 
@@ -197,12 +197,12 @@ export default function BrandsPage() {
                     ))}
                   </div>
                   {kit.target_audience && (
-                    <p className="text-xs text-muted-foreground mt-1.5">受众：{kit.target_audience}</p>
+                    <p className="text-xs text-muted-foreground mt-1.5">Audience: {kit.target_audience}</p>
                   )}
                 </div>
                 <div className="flex gap-2 shrink-0">
-                  <Button size="sm" variant="outline" onClick={() => startEdit(kit)}>编辑</Button>
-                  <Button size="sm" variant="outline" className="text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => handleDelete(kit.kit_id)}>删除</Button>
+                  <Button size="sm" variant="outline" onClick={() => startEdit(kit)}>Edit</Button>
+                  <Button size="sm" variant="outline" className="text-destructive border-destructive/40 hover:bg-destructive/10" onClick={() => handleDelete(kit.kit_id)}>Delete</Button>
                 </div>
               </div>
             </CardContent>

@@ -2,9 +2,9 @@ import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 
 const NAV = [
-  { href: "/dashboard", label: "项目" },
-  { href: "/dashboard/brands", label: "品牌库" },
-  { href: "/dashboard/settings", label: "设置" },
+  { href: "/dashboard", label: "Projects" },
+  { href: "/dashboard/brands", label: "Brands" },
+  { href: "/dashboard/settings", label: "Settings" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -14,7 +14,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside className="w-56 shrink-0 border-r border-border flex flex-col py-6 px-4 gap-6">
         <div className="px-2">
           <span className="text-lg font-bold tracking-tight text-foreground">OpenMontage</span>
-          <p className="text-xs text-muted-foreground mt-0.5">AI 视频生产平台</p>
+          <p className="text-xs text-muted-foreground mt-0.5">AI Video Production Platform</p>
         </div>
         <Separator />
         <nav className="flex flex-col gap-1">

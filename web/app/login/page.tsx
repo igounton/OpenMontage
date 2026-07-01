@@ -28,7 +28,7 @@ function LoginForm() {
       const from = params.get("from") || "/";
       router.push(from);
     } else {
-      setError("口令错误，请重试");
+      setError("Incorrect passphrase, please try again");
       setLoading(false);
     }
   }
@@ -37,14 +37,14 @@ function LoginForm() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
         type="password"
-        placeholder="访问口令"
+        placeholder="Access passphrase"
         value={passphrase}
         onChange={(e) => setPassphrase(e.target.value)}
         autoFocus
       />
       {error && <p className="text-sm text-destructive">{error}</p>}
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "验证中..." : "进入工作台"}
+        {loading ? "Verifying..." : "Enter Workspace"}
       </Button>
     </form>
   );
@@ -56,7 +56,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold tracking-tight">OpenMontage</CardTitle>
-          <CardDescription>输入团队访问口令</CardDescription>
+          <CardDescription>Enter your team access passphrase</CardDescription>
         </CardHeader>
         <CardContent>
           <Suspense fallback={<div className="h-24" />}>

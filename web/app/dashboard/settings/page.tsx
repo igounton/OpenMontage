@@ -11,9 +11,9 @@ type Seam = { active: string; available: string[]; planned: string[] };
 type Backends = { storage: Seam; queue: Seam; auth: Seam };
 
 const SEAM_LABELS: Record<keyof Backends, { title: string; desc: string }> = {
-  queue: { title: "任务队列", desc: "驱动流水线执行的调度层" },
-  storage: { title: "对象存储", desc: "工件 / 素材 / 成片的存储与分发" },
-  auth: { title: "身份认证", desc: "访问控制方式" },
+  queue: { title: "Task Queue", desc: "Scheduling layer that drives pipeline execution" },
+  storage: { title: "Object Storage", desc: "Storage and delivery of artifacts / assets / final renders" },
+  auth: { title: "Authentication", desc: "Access control method" },
 };
 
 export default function SettingsPage() {
@@ -41,44 +41,44 @@ export default function SettingsPage() {
   }, []);
 
   const env = {
-    "LLM 模型": "anthropic/claude-sonnet-4.6",
-    "视频生成": "MaaS · LTX-2.3 / Seedance (CNY 计费)",
-    "图像生成": "MaaS · Flux2",
-    "语音合成": "MaaS · qwen3-tts-flash / IndexTTS",
-    "成本追踪": "cost_tracker 原账本 (cost_log.json)",
+    "LLM Model": "anthropic/claude-sonnet-4.6",
+    "Video Generation": "MaaS · LTX-2.3 / Seedance (CNY billing)",
+    "Image Generation": "MaaS · Flux2",
+    "Speech Synthesis": "MaaS · qwen3-tts-flash / IndexTTS",
+    "Cost Tracking": "cost_tracker source ledger (cost_log.json)",
   };
 
   return (
     <div className="p-8 max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">设置</h1>
-        <p className="text-muted-foreground text-sm mt-1">系统状态与演进路线</p>
+        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
+        <p className="text-muted-foreground text-sm mt-1">System status and evolution roadmap</p>
       </div>
 
       {/* System status */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">系统状态</CardTitle>
+          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">System Status</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm">AI 生产服务器</span>
+            <span className="text-sm">AI Production Server</span>
             {info === null ? (
-              <span className="text-xs text-muted-foreground">检查中…</span>
+              <span className="text-xs text-muted-foreground">Checking…</span>
             ) : (
               <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${info.serverOk ? "bg-green-500/15 text-green-400 border-green-500/30" : "bg-red-500/15 text-red-400 border-red-500/30"}`}>
-                {info.serverOk ? "● 在线" : "● 离线"}
+                {info.serverOk ? "● Online" : "● Offline"}
               </span>
             )}
           </div>
           {info && (
             <>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">历史项目数</span>
+                <span className="text-muted-foreground">Total Projects</span>
                 <span className="font-mono">{info.jobs}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">品牌 Kit 数</span>
+                <span className="text-muted-foreground">Brand Kits</span>
                 <span className="font-mono">{info.brands}</span>
               </div>
             </>
@@ -89,7 +89,7 @@ export default function SettingsPage() {
       {/* Stack */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">当前技术栈</CardTitle>
+          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Current Tech Stack</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2.5">
@@ -106,11 +106,11 @@ export default function SettingsPage() {
       {/* Evolution seams — live from /system/capabilities (M5-3) */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">演进接口 (M5-3)</CardTitle>
+          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Evolution Seams (M5-3)</CardTitle>
         </CardHeader>
         <CardContent>
           {backends === null ? (
-            <p className="text-xs text-muted-foreground">读取后端能力中…</p>
+            <p className="text-xs text-muted-foreground">Loading backend capabilities…</p>
           ) : (
             <div className="space-y-4">
               {(Object.keys(SEAM_LABELS) as (keyof Backends)[]).map((key) => {
@@ -123,16 +123,16 @@ export default function SettingsPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-medium">{meta.title}</span>
                         <span className="text-[10px] px-1.5 py-0.5 rounded border font-medium bg-green-500/15 text-green-400 border-green-500/30">
-                          运行中: {seam.active}
+                          Running: {seam.active}
                         </span>
                         {seam.planned.map((p) => (
                           <span key={p} className="text-[10px] px-1.5 py-0.5 rounded border font-medium bg-muted text-muted-foreground border-border">
-                            {p} · 规划中
+                            {p} · Planned
                           </span>
                         ))}
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {meta.desc} — 接口已预留 (server/app/interfaces)，切换实现无需改调用方。
+                        {meta.desc} — interface reserved (server/app/interfaces); swapping implementations requires no caller changes.
                       </p>
                     </div>
                   </div>

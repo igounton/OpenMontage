@@ -13,9 +13,9 @@ const SERVER = process.env.NEXT_PUBLIC_SERVER_URL ?? "http://localhost:8000";
 
 const STAGES = ["research", "proposal", "script", "scene_plan", "assets", "edit", "compose", "publish"];
 const STAGE_LABELS: Record<string, string> = {
-  research: "调研", proposal: "提案", script: "脚本",
-  scene_plan: "分镜", assets: "素材", edit: "剪辑",
-  compose: "合成", publish: "发布", budget: "预算",
+  research: "Research", proposal: "Proposal", script: "Script",
+  scene_plan: "Scene Plan", assets: "Assets", edit: "Edit",
+  compose: "Compose", publish: "Publish", budget: "Budget",
 };
 
 export default function JobDetailPage() {
@@ -124,7 +124,7 @@ export default function JobDetailPage() {
     try {
       parsed = JSON.parse(editJson);
     } catch {
-      setEditError("JSON 格式错误，请检查");
+      setEditError("Invalid JSON format, please check");
       return;
     }
     setSaving(true);
@@ -139,7 +139,7 @@ export default function JobDetailPage() {
       setPreview(parsed);
       setEditMode(false);
     } else {
-      setEditError("保存失败，请重试");
+      setEditError("Save failed, please try again");
     }
   }
 
@@ -163,10 +163,10 @@ export default function JobDetailPage() {
                   ? "text-red-400 border-red-500/40 bg-red-500/10"
                   : "text-muted-foreground border-border"
               }`}
-              title="工具调用累计成本(CNY)"
+              title="Cumulative tool-call cost (CNY)"
             >
               ¥{costCny.toFixed(4)}
-              {budgetCny != null && ` / ¥${budgetCny.toFixed(2)} 预算`}
+              {budgetCny != null && ` / ¥${budgetCny.toFixed(2)} budget`}
             </span>
           )}
           <StatusBadge status={status} />
@@ -207,11 +207,11 @@ export default function JobDetailPage() {
         <Card className="border-red-500/40 bg-red-500/5">
           <CardContent className="pt-4 pb-4 flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-red-400">阶段失败</p>
-              <p className="text-xs text-muted-foreground mt-0.5">可以从当前阶段重新触发（已生成的 artifacts 不会清除）</p>
+              <p className="text-sm font-medium text-red-400">Stage failed</p>
+              <p className="text-xs text-muted-foreground mt-0.5">You can retrigger from the current stage (generated artifacts won't be cleared)</p>
             </div>
             <Button variant="outline" size="sm" onClick={handleRetry} disabled={retrying} className="border-red-500/40 text-red-400 hover:bg-red-500/10">
-              {retrying ? "重试中…" : "↺ 重试"}
+              {retrying ? "Retrying…" : "↺ Retry"}
             </Button>
           </CardContent>
         </Card>
@@ -225,8 +225,8 @@ export default function JobDetailPage() {
               <CardTitle className="text-base flex items-center gap-2">
                 <span className="text-yellow-400">⏸</span>
                 {isBudgetGate
-                  ? "预算超支 — 需要你确认是否继续"
-                  : `${STAGE_LABELS[awaitingStage]} — 等待你的审批`}
+                  ? "Budget exceeded — please confirm whether to continue"
+                  : `${STAGE_LABELS[awaitingStage]} — awaiting your approval`}
               </CardTitle>
               {preview && !isBudgetGate && (
                 <Button
@@ -235,7 +235,7 @@ export default function JobDetailPage() {
                   className="text-xs"
                   onClick={() => { setEditMode(!editMode); setEditError(""); }}
                 >
-                  {editMode ? "取消编辑" : "✏ 直接编辑"}
+                  {editMode ? "Cancel Edit" : "✏ Edit Directly"}
                 </Button>
               )}
             </div>
@@ -257,10 +257,10 @@ export default function JobDetailPage() {
                 {editError && <p className="text-xs text-destructive">{editError}</p>}
                 <div className="flex gap-2">
                   <Button size="sm" onClick={handleSaveEdit} disabled={saving}>
-                    {saving ? "保存中…" : "保存修改"}
+                    {saving ? "Saving…" : "Save Changes"}
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => { setEditMode(false); setEditJson(JSON.stringify(preview, null, 2)); }}>
-                    还原
+                    Revert
                   </Button>
                 </div>
               </div>
@@ -269,7 +269,7 @@ export default function JobDetailPage() {
             {/* Feedback textarea — not shown for the budget gate */}
             {!editMode && !isBudgetGate && (
               <Textarea
-                placeholder="（可选）写下反馈，让 AI 修改后重来…"
+                placeholder="(Optional) Leave feedback for the AI to revise and retry…"
                 rows={2}
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
@@ -280,7 +280,7 @@ export default function JobDetailPage() {
             {!editMode && (
               <div className="flex gap-3">
                 <Button onClick={() => handleApproval("approve")} disabled={approving} className="flex-1">
-                  {isBudgetGate ? "✓ 批准超支，继续生产" : "✓ 批准，继续生产"}
+                  {isBudgetGate ? "✓ Approve overage, continue production" : "✓ Approve, continue production"}
                 </Button>
                 <Button
                   variant="outline"
@@ -288,7 +288,7 @@ export default function JobDetailPage() {
                   disabled={approving || (!isBudgetGate && !feedback)}
                   className="flex-1"
                 >
-                  {isBudgetGate ? "⛔ 终止任务" : "↩ 打回重做"}
+                  {isBudgetGate ? "⛔ Abort job" : "↩ Send back for rework"}
                 </Button>
               </div>
             )}
@@ -300,12 +300,12 @@ export default function JobDetailPage() {
       {renderUrl && (
         <Card className="border-green-500/40 bg-green-500/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base text-green-400">🎬 成片已就绪</CardTitle>
+            <CardTitle className="text-base text-green-400">🎬 Final video ready</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <video src={renderUrl} controls className="w-full rounded-lg bg-black aspect-video" />
             <a href={renderUrl} download>
-              <Button variant="outline" className="w-full">下载 MP4</Button>
+              <Button variant="outline" className="w-full">Download MP4</Button>
             </a>
           </CardContent>
         </Card>
@@ -314,14 +314,14 @@ export default function JobDetailPage() {
       {/* Event log */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm text-muted-foreground font-medium">实时进度</CardTitle>
+          <CardTitle className="text-sm text-muted-foreground font-medium">Live Progress</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="h-72 px-4 pb-4">
             <div className="space-y-1.5 font-mono text-xs">
               {events.map((ev) => <EventRow key={ev.seq} ev={ev} />)}
               {events.length === 0 && (
-                <p className="text-muted-foreground py-4 text-center">等待任务启动…</p>
+                <p className="text-muted-foreground py-4 text-center">Waiting for job to start…</p>
               )}
               <div ref={bottomRef} />
             </div>
