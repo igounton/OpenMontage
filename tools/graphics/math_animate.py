@@ -45,13 +45,30 @@ _BLOCKED_IMPORTS = frozenset({
     "importlib", "builtins", "multiprocessing", "threading", "pty", "glob",
     "resource", "signal", "tempfile", "webbrowser", "pathlib",
 })
-_BLOCKED_CALLS = frozenset({
+# Dangerous identifiers blocked wherever they appear as a bare name — not just
+# as a direct call. This catches indirection like `__builtins__['open']`,
+# `f = open`, or `getattr(x, '__class__')` that a call-target-only or
+# attribute-only check would miss.
+_BLOCKED_NAMES = frozenset({
     "eval", "exec", "compile", "__import__", "open", "input", "breakpoint",
+    "__builtins__", "__loader__", "globals", "locals", "vars",
+    "getattr", "setattr", "delattr",
 })
-_BLOCKED_ATTRS = frozenset({
-    "__globals__", "__builtins__", "__subclasses__", "__bases__", "__mro__",
-    "__code__",
-})
+# Reflection via dunder attributes is the general escape hatch: `().__class__`,
+# `print.__self__` (the builtins module), `x.__globals__`, `f.__reduce__`, etc.
+# Enumerating dangerous dunders one by one is whack-a-mole, so block ALL dunder
+# *attribute access* and allow only a tiny set that legitimate scenes use
+# (`super().__init__(...)`, occasional `Type.__name__`). A dunder is any name
+# that starts and ends with double underscores.
+_ALLOWED_DUNDER_ATTRS = frozenset({"__init__", "__name__"})
+
+
+def _is_blocked_dunder(attr: str) -> bool:
+    return (
+        attr.startswith("__")
+        and attr.endswith("__")
+        and attr not in _ALLOWED_DUNDER_ATTRS
+    )
 
 
 # Quality presets mapping to Manim CLI flags
@@ -230,13 +247,14 @@ class MathAnimate(BaseTool):
                 root = (node.module or "").split(".")[0]
                 if root in _BLOCKED_IMPORTS:
                     violations.append(f"from '{node.module}' import ...")
-            elif isinstance(node, ast.Call):
-                fn = node.func
-                if isinstance(fn, ast.Name) and fn.id in _BLOCKED_CALLS:
-                    violations.append(f"call to '{fn.id}()'")
+            elif isinstance(node, ast.Name):
+                # Blocks direct calls (eval(...)) and indirection alike:
+                # `__builtins__['open']`, `f = open`, `getattr(o, '__class__')`.
+                if node.id in _BLOCKED_NAMES:
+                    violations.append(f"use of '{node.id}'")
             elif isinstance(node, ast.Attribute):
-                if node.attr in _BLOCKED_ATTRS:
-                    violations.append(f"attribute access '.{node.attr}'")
+                if _is_blocked_dunder(node.attr):
+                    violations.append(f"dunder attribute access '.{node.attr}'")
 
         seen: set[str] = set()
         deduped: list[str] = []
