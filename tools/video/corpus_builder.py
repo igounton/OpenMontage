@@ -392,6 +392,46 @@ class CorpusBuilder(BaseTool):
             except Exception as e:
                 cache_snapshot = {"error": f"{type(e).__name__}: {e}"}
 
+            # Per-candidate tolerance is useful only while at least one item
+            # survives. If every candidate we processed fails, reporting success
+            # persists an index with no new rows and hides a systemic codec/CLIP
+            # failure until retrieval. Keyed on `failed`, not on `skipped`:
+            # already-present clips say nothing about whether processing worked,
+            # so a run that skips one clip and fails the other nine is still a
+            # total failure. A no-result or skip-only run (failed == 0) is valid.
+            total_failure = bool(candidates_seen) and not added_ids and failed > 0
+            if total_failure:
+                first_errors = "; ".join(
+                    item["error"]
+                    for item in errors
+                    if item.get("phase") == "process"
+                )[:400]
+                index_state = (
+                    "corpus index is empty"
+                    if not skipped
+                    else f"no clips added ({skipped} already present)"
+                )
+                return ToolResult(
+                    success=False,
+                    error=(
+                        f"All {failed} processed candidate(s) failed, of "
+                        f"{candidates_seen} seen; {index_state}. Check the media "
+                        "decoder and the CLIP `transformers`/`torch` compatibility. "
+                        f"First errors: {first_errors or '(none recorded)'}"
+                    ),
+                    data={
+                        "corpus_dir": str(corpus_dir),
+                        "queries_run": len(queries),
+                        "candidates_seen": candidates_seen,
+                        "clips_added": 0,
+                        "clips_skipped_existing": skipped,
+                        "clips_failed": failed,
+                        "total_corpus_size": len(corp),
+                        "errors": errors[:25],
+                    },
+                    duration_seconds=round(elapsed, 2),
+                )
+
             return ToolResult(
                 success=True,
                 data={

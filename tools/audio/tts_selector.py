@@ -20,7 +20,7 @@ class TTSSelector(BaseTool):
     provider = "selector"
     stability = ToolStability.BETA
     runtime = ToolRuntime.HYBRID
-    agent_skills = ["text-to-speech", "elevenlabs", "openai-docs"]
+    agent_skills = ["text-to-speech", "elevenlabs"]
 
     capabilities = [
         "text_to_speech",
@@ -45,6 +45,10 @@ class TTSSelector(BaseTool):
                 "type": "string",
                 "description": "Provider-specific voice ID. Passed through to the selected TTS provider.",
             },
+            "voice": {
+                "type": "string",
+                "description": "Provider-specific voice name or ID. fal.ai ElevenLabs accepts names such as Rachel.",
+            },
             "voice_language": {
                 "type": "string",
                 "enum": ["zh", "en"],
@@ -58,7 +62,7 @@ class TTSSelector(BaseTool):
             },
             "model_id": {
                 "type": "string",
-                "description": "TTS model to use (e.g. eleven_multilingual_v2). Passed through to provider.",
+                "description": "TTS model to use (e.g. eleven-v3 or eleven_multilingual_v2). Passed through to provider.",
             },
             "stability": {
                 "type": "number", "minimum": 0, "maximum": 1,
@@ -99,6 +103,24 @@ class TTSSelector(BaseTool):
                 "enum": ["text", "ssml"],
                 "default": "text",
                 "description": "Use 'ssml' only when the selected provider supports tags such as <break>.",
+            },
+            "language_code": {
+                "type": "string",
+                "description": "Provider-specific language code, such as en-US for Google or en for fal.ai ElevenLabs.",
+            },
+            "timestamps": {
+                "type": "boolean",
+                "default": False,
+                "description": "Request word timestamps when the selected provider supports them.",
+            },
+            "apply_text_normalization": {
+                "type": "string",
+                "enum": ["auto", "on", "off"],
+                "description": "Text normalization mode for providers that support it.",
+            },
+            "seed": {
+                "type": "integer",
+                "description": "Optional generation seed for providers that support reproducible speech.",
             },
             "voice_performance": {
                 "type": "object",
@@ -188,7 +210,7 @@ class TTSSelector(BaseTool):
         if tool is None:
             return ToolResult(success=False, error="No TTS provider available.")
 
-        result = tool.execute(inputs)
+        result = tool.execute(self._adapt_inputs(tool, inputs))
         if result.success:
             result.data.setdefault("selected_tool", tool.name)
             result.data["selected_provider"] = tool.provider
@@ -201,6 +223,37 @@ class TTSSelector(BaseTool):
                 if t.name != tool.name and t.get_status().value == "available"
             ]
         return result
+
+    @staticmethod
+    def _adapt_inputs(tool: BaseTool, inputs: dict[str, Any]) -> dict[str, Any]:
+        """Translate capability-level controls to provider-native inputs."""
+        adapted = dict(inputs)
+        if tool.name != "azure_tts":
+            return adapted
+
+        if inputs.get("voice_id") and not inputs.get("voice"):
+            adapted["voice"] = inputs["voice_id"]
+
+        speed = inputs.get("speaking_rate", inputs.get("speed"))
+        if speed is not None and "rate" not in inputs:
+            percent = round((float(speed) - 1.0) * 100)
+            adapted["rate"] = f"{percent:+d}%" if percent else "0%"
+
+        pitch = inputs.get("pitch")
+        if isinstance(pitch, (int, float)):
+            adapted["pitch"] = f"{pitch:+g}st" if pitch else "0%"
+
+        # The selector's numeric style is ElevenLabs-specific. Azure's style
+        # is a named express-as value such as "calm" or "newscast".
+        if not isinstance(inputs.get("style"), str):
+            adapted.pop("style", None)
+
+        output_format = str(inputs.get("output_format", ""))
+        if output_format.startswith("mp3"):
+            adapted["output_format"] = "mp3"
+        elif output_format.startswith(("wav", "riff", "pcm")):
+            adapted["output_format"] = "wav"
+        return adapted
 
     def _select_best_tool(
         self,

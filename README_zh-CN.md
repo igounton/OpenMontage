@@ -1,6 +1,11 @@
 <p align="center">
-  <img src="assets/logo.png" alt="OpenMontage" width="200">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/monty-dark.svg">
+    <img src="assets/monty-light.svg" alt="Monty the Clapper — OpenMontage 官方吉祥物" width="200">
+  </picture>
 </p>
+
+<p align="center"><sub><em>Monty the Clapper — OpenMontage 官方吉祥物</em></sub></p>
 
 <h1 align="center">OpenMontage</h1>
 
@@ -182,6 +187,7 @@ XAI_API_KEY=your-key           # xAI Grok 图像编辑/生成 + Grok 视频生�
 GOOGLE_API_KEY=your-key        # Google Imagen 图像、Google TTS（700+ 种声音）
 
 # 更多视频提供商:
+ARK_API_KEY=your-key           # 火山方舟直连 — Seedance 2.0 Standard/Fast/Mini
 HEYGEN_API_KEY=your-key        # HeyGen — 汇集 VEO、Sora、Runway、Kling 的统一网关
 RUNWAY_API_KEY=your-key        # Runway Gen-4 直连
 ```
@@ -194,7 +200,7 @@ make install-gpu
 
 # 然后添加到 .env:
 VIDEO_GEN_LOCAL_ENABLED=true
-VIDEO_GEN_LOCAL_MODEL=wan2.1-1.3b  # 或 wan2.1-14b, hunyuan-1.5, ltx2-local, cogvideo-5b
+VIDEO_GEN_LOCAL_MODEL=wan2.2-ti2v-5b  # 或 wan2.1-1.3b, wan2.1-14b, hunyuan-1.5, ltx2-local, cogvideo-5b
 ```
 
 </details>
@@ -412,11 +418,12 @@ OpenMontage/
 > **包含定价与免费额度的完整设置指南：** [`docs/PROVIDERS.md`](docs/PROVIDERS.md)
 
 <details>
-<summary><strong>视频生成 — 14 家提供商</strong></summary>
+<summary><strong>视频生成 — 15 家提供商</strong></summary>
 
 | 提供商 | 类型 | 备注 |
 |----------|------|-------|
 | **Kling** | 云端 API | 高质量，速度快 |
+| **Seedance 2.0（火山方舟）** | 云端 API | 独立的 `seedance_ark` 官方直连接口 |
 | **Runway Gen-4** | 云端 API | 电影级质量，Gen-3 Alpha Turbo / Gen-4 Turbo / Gen-4 Aleph |
 | **Google Veo 3** | 云端 API | 长篇幅，电影级。通过 fal.ai 或 HeyGen 接入。 |
 | **Grok Imagine Video** | 云端 API | 强大的基于参考图的视频和 xAI 原生短视频生成 |
